@@ -50,6 +50,14 @@ export class Monocle implements INodeType {
 						value: 'metric',
 					},
 					{
+						name: 'Group',
+						value: 'group',
+					},
+					{
+						name: 'Project',
+						value: 'project',
+					},
+					{
 						name: 'Search',
 						value: 'search',
 					},
@@ -124,24 +132,79 @@ export class Monocle implements INodeType {
 						name: 'Query',
 						value: 'query',
 						description: 'Run query',
-						action: 'Get a metric',
+						action: 'Run a predefined query',
+					},
+					{
+						name: 'Author',
+						value: 'author',
+						description: 'Search author',
+						action: 'Search author',
 					},
 				],
 				default: 'query',
 			},
 
-			// Metric fields
+			// Group Operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+
+				displayOptions: {
+					show: {
+						resource: ['group'],
+					},
+				},
+				options: [
+					{
+						name: 'List',
+						value: 'get_groups',
+						action: 'List groups',
+					},
+					{
+						name: 'Get Members',
+						value: 'get_members',
+						action: 'Get group members',
+					},
+				],
+				default: 'get_groups',
+			},
+
+			// Project Operations
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				noDataExpression: true,
+
+				displayOptions: {
+					show: {
+						resource: ['project'],
+					},
+				},
+				options: [
+					{
+						name: 'List',
+						value: 'get_projects',
+						action: 'List projects',
+					},
+				],
+				default: 'get_projects',
+			},
+
+			// Common fields
 			{
 				// eslint-disable-next-line n8n-nodes-base/node-param-display-name-wrong-for-dynamic-options
 				displayName: 'Index',
 				name: 'index',
 				type: 'options',
-				description:
-					'Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>',
+				// eslint-disable-next-line n8n-nodes-base/node-param-description-wrong-for-dynamic-options
+				description: 'Choose from the list, or specify a string',
 				displayOptions: {
 					show: {
-						resource: ['metric', 'search'],
-						operation: ['get', 'query'],
+						resource: ['metric', 'search', 'group', 'project'],
+						operation: ['get', 'query', 'get_members', 'get_groups', 'get_projects', 'author'],
 					},
 				},
 				typeOptions: {
@@ -149,6 +212,8 @@ export class Monocle implements INodeType {
 				},
 				default: '',
 			},
+
+			// Metric fields
 			{
 				displayName: 'Metric Name or ID',
 				name: 'metric',
@@ -170,10 +235,11 @@ export class Monocle implements INodeType {
 				displayName: 'Query',
 				name: 'query',
 				type: 'string',
+				description: 'Query string, just like you would use in the Monocle URL',
 				displayOptions: {
 					show: {
 						resource: ['metric', 'search'],
-						operation: ['get', 'query'],
+						operation: ['get', 'query', 'author'],
 					},
 				},
 				default: 'from:now-3weeks',
@@ -194,6 +260,7 @@ export class Monocle implements INodeType {
 			{
 				displayName: 'Trend Interval',
 				name: 'trend',
+				description: 'Should we return a time series or just the current value?',
 				type: 'options',
 				displayOptions: {
 					show: {
@@ -238,6 +305,7 @@ export class Monocle implements INodeType {
 			{
 				displayName: 'Query Type',
 				name: 'query_type',
+				description: 'Type of pre-defined query to run',
 				type: 'options',
 				displayOptions: {
 					show: {
@@ -246,85 +314,100 @@ export class Monocle implements INodeType {
 					},
 				},
 				// From https://github.com/change-metrics/monocle/blob/master/schemas/monocle/protob/search.proto
+				// eslint-disable-next-line n8n-nodes-base/node-param-options-type-unsorted-items
 				options: [
 					{
-						name: 'QUERY_CHANGE',
-						value: 0,
+						name: 'Change',
+						value: 'QUERY_CHANGE',
 					},
 					{
-						name: 'QUERY_REPOS_SUMMARY',
-						value: 2,
+						name: 'Repos Summary',
+						value: 'QUERY_REPOS_SUMMARY',
 					},
 					{
-						name: 'QUERY_TOP_AUTHORS_CHANGES_CREATED',
-						value: 3,
+						name: 'Top Authors Changes Created',
+						value: 'QUERY_TOP_AUTHORS_CHANGES_CREATED',
 					},
 					{
-						name: 'QUERY_TOP_AUTHORS_CHANGES_MERGED',
-						value: 4,
+						name: 'Top Authors Changes Merged',
+						value: 'QUERY_TOP_AUTHORS_CHANGES_MERGED',
 					},
 					{
-						name: 'QUERY_TOP_AUTHORS_CHANGES_REVIEWED',
-						value: 5,
+						name: 'Top Authors Changes Reviewed',
+						value: 'QUERY_TOP_AUTHORS_CHANGES_REVIEWED',
 					},
 					{
-						name: 'QUERY_TOP_AUTHORS_CHANGES_COMMENTED',
-						value: 6,
+						name: 'Top Authors Changes Commented',
+						value: 'QUERY_TOP_AUTHORS_CHANGES_COMMENTED',
 					},
 					{
-						name: 'QUERY_TOP_REVIEWED_AUTHORS',
-						value: 7,
+						name: 'Top Reviewed Authors',
+						value: 'QUERY_TOP_REVIEWED_AUTHORS',
 					},
 					{
-						name: 'QUERY_TOP_COMMENTED_AUTHORS',
-						value: 8,
+						name: 'Top Commented Authors',
+						value: 'QUERY_TOP_COMMENTED_AUTHORS',
 					},
 					{
-						name: 'QUERY_TOP_AUTHORS_PEERS',
-						value: 9,
+						name: 'Top Authors Peers',
+						value: 'QUERY_TOP_AUTHORS_PEERS',
 					},
 					{
-						name: 'QUERY_NEW_CHANGES_AUTHORS',
-						value: 10,
+						name: 'New Changes Authors',
+						value: 'QUERY_NEW_CHANGES_AUTHORS',
 					},
 					// Activity page
 					{
-						name: 'QUERY_CHANGES_REVIEW_STATS',
-						value: 20,
+						name: 'Changes Review Stats',
+						value: 'QUERY_CHANGES_REVIEW_STATS',
 					},
 					{
-						name: 'QUERY_CHANGES_LIFECYCLE_STATS',
-						value: 21,
+						name: 'Changes Lifecycle Stats',
+						value: 'QUERY_CHANGES_LIFECYCLE_STATS',
 					},
 					{
-						name: 'QUERY_ACTIVE_AUTHORS_STATS',
-						value: 22,
+						name: 'Active Authors Stats',
+						value: 'QUERY_ACTIVE_AUTHORS_STATS',
 					},
 					// Change page
 					{
-						name: 'QUERY_CHANGE_AND_EVENTS',
-						value: 30,
+						name: 'Change And Events',
+						value: 'QUERY_CHANGE_AND_EVENTS',
 					},
 					{
-						name: 'QUERY_CHANGES_TOPS',
-						value: 31,
+						name: 'Changes Tops',
+						value: 'QUERY_CHANGES_TOPS',
 					},
 					// Ratio
 					{
-						name: 'QUERY_RATIO_COMMITS_VS_REVIEWS',
-						value: 40,
+						name: 'Ratio Commits Vs Reviews',
+						value: 'QUERY_RATIO_COMMITS_VS_REVIEWS',
 					},
 					// Histo
 					{
-						name: 'QUERY_HISTO_COMMITS',
-						value: 50,
+						name: 'Histo Commits',
+						value: 'QUERY_HISTO_COMMITS',
 					},
 					{
-						name: 'QUERY_HISTO_REVIEWS_AND_COMMENTS',
-						value: 51,
+						name: 'Histo Reviews And Comments',
+						value: 'QUERY_HISTO_REVIEWS_AND_COMMENTS',
 					},
 				],
-				default: 0,
+				default: 'QUERY_CHANGE',
+			},
+
+			// group fields
+			{
+				displayName: 'Group',
+				name: 'group',
+				type: 'string',
+				displayOptions: {
+					show: {
+						resource: ['group'],
+						operation: ['get_members'],
+					},
+				},
+				default: '',
 			},
 		],
 	};
@@ -336,10 +419,6 @@ export class Monocle implements INodeType {
 		},
 	};
 
-	// The function below is responsible for actually doing whatever this node
-	// is supposed to do. In this case, we're just appending the `myString` property
-	// with whatever the user has entered.
-	// You can make async calls and use `await`.
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 
@@ -383,6 +462,42 @@ export class Monocle implements INodeType {
 					}
 				}
 
+				if (resource === 'group') {
+					if (operation === 'get_groups') {
+						const index = this.getNodeParameter('index', itemIndex) as string;
+
+						const response = await monocleApiRequest.call(this, '/api/2/get_groups', {
+							index,
+						});
+
+						return [this.helpers.returnJsonArray(response?.items)];
+					}
+
+					if (operation === 'get_members') {
+						const index = this.getNodeParameter('index', itemIndex) as string;
+						const group = this.getNodeParameter('group', itemIndex) as string;
+
+						const response = await monocleApiRequest.call(this, '/api/2/get_group_members', {
+							index,
+							group,
+						});
+
+						item.json = response?.members;
+					}
+				}
+
+				if (resource === 'project') {
+					if (operation === 'get_projects') {
+						const index = this.getNodeParameter('index', itemIndex) as string;
+
+						const response = await monocleApiRequest.call(this, '/api/2/get_projects', {
+							index,
+						});
+
+						return [this.helpers.returnJsonArray(response?.projects)];
+					}
+				}
+
 				if (resource === 'search') {
 					if (operation === 'query') {
 						const index = this.getNodeParameter('index', itemIndex) as string;
@@ -404,6 +519,18 @@ export class Monocle implements INodeType {
 						});
 
 						item.json = response;
+					}
+
+					if (operation === 'author') {
+						const index = this.getNodeParameter('index', itemIndex) as string;
+						const query = this.getNodeParameter('query', itemIndex) as string;
+
+						const response = await monocleApiRequest.call(this, '/api/2/search/author', {
+							index,
+							query,
+						});
+
+						return [this.helpers.returnJsonArray(response?.authors)];
 					}
 				}
 			} catch (error) {
