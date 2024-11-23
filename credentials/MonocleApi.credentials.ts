@@ -5,46 +5,44 @@ import {
 	INodeProperties,
 } from 'n8n-workflow';
 
-export class HttpBinApi implements ICredentialType {
-	name = 'httpbinApi';
-	displayName = 'HttpBin API';
-	documentationUrl = '<your-docs-url>';
+export class MonocleApi implements ICredentialType {
+	name = 'monocleApi';
+	displayName = 'Monocle API';
+	documentationUrl = 'https://github.com/change-metrics/monocle?tab=readme-ov-file#service-tokens';
 	properties: INodeProperties[] = [
 		{
-			displayName: 'Token',
+			displayName: 'JWT Token',
 			name: 'token',
 			type: 'string',
 			default: '',
 			typeOptions: {
 				password: true,
-			}
+			},
 		},
 		{
 			displayName: 'Domain',
 			name: 'domain',
 			type: 'string',
-			default: 'https://httpbin.org',
+			default: 'https://demo.changemetrics.io',
 		},
 	];
 
-	// This allows the credential to be used by other parts of n8n
-	// stating how this credential is injected as part of the request
-	// An example is the Http Request node that can make generic calls
-	// reusing this credential
 	authenticate: IAuthenticateGeneric = {
 		type: 'generic',
 		properties: {
 			headers: {
 				Authorization: '={{"Bearer " + $credentials.token}}',
+				'Content-Type': 'application/json',
 			},
 		},
 	};
 
-	// The block below tells how this credential can be tested
 	test: ICredentialTestRequest = {
 		request: {
 			baseURL: '={{$credentials?.domain}}',
-			url: '/bearer',
+			method: 'POST',
+			url: '/auth/whoami',
+			body: { void: '' },
 		},
 	};
 }

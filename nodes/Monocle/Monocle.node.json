@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-monocle",
+	"nodeVersion": "1.0.0",
+	"codexVersion": "1.0",
+	"categories": ["Development", "Developer Tools"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/change-metrics/monocle?tab=readme-ov-file#service-tokens"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/Yann-J/n8n-nodes-monocle"
+			}
+		]
+	}
+}
